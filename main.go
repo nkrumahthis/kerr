@@ -1,6 +1,9 @@
 package main
 
-import "nkrumahsarpong.com/kerr/cmd"
+import (
+	_ "github.com/mattn/go-sqlite3"
+	"nkrumahsarpong.com/kerr/cmd"
+)
 
 func main() {
 	cmd.Execute()
