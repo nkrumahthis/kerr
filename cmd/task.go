@@ -4,6 +4,10 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"time"
+
+	"github.com/olebedev/when"
+	"github.com/olebedev/when/rules/en"
 
 	"github.com/spf13/cobra"
 	"nkrumahsarpong.com/kerr/core"
@@ -89,9 +93,15 @@ func handleNewTask(db *sql.DB, taskName string) {
 		return
 	}
 
-	fmt.Print("Enter deadline (YYYY-MM-DD): ")
-	var deadline string
-	fmt.Scanln(&deadline)
+	fmt.Print("Deadline (e.g., 'today', 'in 2 hours', 'next Friday'): ")
+	var deadlineInput string
+	fmt.Scanln(&deadlineInput)
+	deadline, err := parseNaturalLanguageDeadline(deadlineInput)
+
+	if err != nil {
+		log.Fatalf("Failed to parse deadline: %v", err)
+		return
+	}
 
 	fmt.Println("Enter task steps (one per line, finish with an empty line):")
 	steps := []string{}
@@ -104,5 +114,18 @@ func handleNewTask(db *sql.DB, taskName string) {
 		steps = append(steps, step)
 	}
 
-	insertTask(db, projectID, taskName, deadline, steps)
+	insertTask(db, projectID, taskName, deadline.Format(time.RFC3339), steps)
+}
+
+func parseNaturalLanguageDeadline(input string) (time.Time, error) {
+	w := when.New(nil)
+	w.Add(en.All...)
+
+	now := time.Now()
+	result, err := w.Parse(input, now)
+	if err != nil || result == nil {
+		return time.Time{}, fmt.Errorf("unable to parse deadline")
+	}
+
+	return result.Time, nil
 }
