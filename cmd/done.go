@@ -17,9 +17,9 @@ var doneCmd = &cobra.Command{
 		defer db.Close()
 
 		if len(args) == 0 {
-			listDone(db)
+			listDone()
 		} else {
-			handleDone(args[0])
+			handleDone(db, args[0])
 		}
 	},
 }
@@ -28,11 +28,17 @@ func init() {
 	rootCmd.AddCommand(doneCmd)
 }
 
-func listDone(db *sql.DB) {
-	fmt.Println("List of things you have done:")
+func listDone() {
+	principles := core.GetPrinciples()
+	for _, principle := range principles {
+		fmt.Println("Principle: " + principle.Description)
+		for _, tag := range principle.Tags {
+			fmt.Println(" - Tag: " + tag)
+		}
+	}
 }
 
-func handleDone(name string) {
+func handleDone(db *sql.DB, name string) {
 	var principles = core.GetPrinciples()
 	var chosenPrinciple core.Principle
 	for _, principle := range principles {
@@ -43,6 +49,28 @@ func handleDone(name string) {
 			}
 		}
 	}
+
+	if chosenPrinciple.Description == "" {
+		fmt.Println("Principle not found. Would you like to create a new one? (yes/no)")
+		var response string
+		fmt.Scanln(&response)
+		if response == "yes" {
+			fmt.Println("Enter the description of the new principle:")
+			var description string
+			fmt.Scanln(&description)
+			newPrinciple := core.Principle{
+				Description: description,
+				Tags:        []string{name},
+			}
+			principles = append(principles, newPrinciple)
+			core.SavePrinciples(principles)
+			chosenPrinciple = newPrinciple
+		} else {
+			fmt.Println("No new principle created.")
+			return
+		}
+	}
+
 	fmt.Println("You have successfully done something: " + chosenPrinciple.Description)
 }
 

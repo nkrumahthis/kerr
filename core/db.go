@@ -66,6 +66,14 @@ func InitializeTables(db *sql.DB) {
 		);
 	`
 
+	scoreTable := `
+		CREATE TABLE IF NOT EXISTS scores (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			principle TEXT NOT NULL,
+			score INTEGER NOT NULL
+		);
+	`
+
 	_, err := db.Exec(projectTable)
 	if err != nil {
 		log.Fatalf("Failed to create projects table: %v", err)
@@ -79,6 +87,11 @@ func InitializeTables(db *sql.DB) {
 	_, err = db.Exec(stepTable)
 	if err != nil {
 		log.Fatalf("Failed to create steps table: %v", err)
+	}
+
+	_, err = db.Exec(scoreTable)
+	if err != nil {
+		log.Fatalf("Failed to create score table: %v", err)
 	}
 }
 

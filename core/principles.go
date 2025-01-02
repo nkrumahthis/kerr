@@ -1,47 +1,35 @@
 package core
 
+import (
+	"encoding/json"
+	"os"
+)
+
 type Principle struct {
 	Description string   `json:"description"`
 	Tags        []string `json:"tags"`
+	Score       int      `json:"score"`
 }
 
 func GetPrinciples() []Principle {
-	return []Principle{
-		{
-			Description: "Communicate proactively: Overcommunicate with stakeholders.",
-			Tags:        []string{"communication", "slack"},
-		},
-		{
-			Description: "Be early: Deliver work before the deadline.",
-			Tags:        []string{"time", "early"},
-		},
-		{
-			Description: "Double-check your work: Ensure it's error-free.",
-			Tags:        []string{"quality", "perfect"},
-		},
-		{
-			Description: "Take notes: Record meeting outcomes and action items.",
-			Tags:        []string{"notes"},
-		},
-		{
-			Description: "Ask questions: Clarify doubts immediately.",
-			Tags:        []string{"questions"},
-		},
-		{
-			Description: "Follow up: Send recap emails to ensure alignment.",
-			Tags:        []string{"recap", "email", "emails"},
-		},
-		{
-			Description: "Own your mistakes: Fix issues and learn from them.",
-			Tags:        []string{"responsibility", "fix", "mistakes", "mybad"},
-		},
-		{
-			Description: "Be a team player: Help others succeed.",
-			Tags:        []string{"teamwork", "collaboration", "help"},
-		},
-		{
-			Description: "Show gratitude: Thank colleagues for their contributions.",
-			Tags:        []string{"thanks", "thank", "gratitude"},
-		},
+	data, err := os.ReadFile("principles.json")
+	if err != nil {
+		return nil
 	}
+
+	var principles []Principle
+	err = json.Unmarshal(data, &principles)
+	if err != nil {
+		return nil
+	}
+
+	return principles
+}
+
+func SavePrinciples(principles []Principle) {
+
+	data, _ := json.Marshal(principles)
+
+	_ = os.WriteFile("principles.json", data, 0644)
+
 }
