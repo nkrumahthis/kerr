@@ -1,0 +1,69 @@
+[
+    {
+      "code": "accurate",
+      "description": "Deliver high-quality, error-free code and technical outputs.",
+      "score": 5,
+      "process": "Review code for syntax, logic, and edge cases. Run tests to ensure correctness. Validate outputs with real-world scenarios."
+    },
+    {
+      "code": "early",
+      "description": "Complete tasks or deliver features before deadlines.",
+      "score": 10,
+      "process": "Aim to finish coding tasks 24 hours early. Prepare for sprints by completing grooming and estimations ahead of time."
+    },
+    {
+      "code": "update",
+      "description": "Provide regular updates on development progress to stakeholders.",
+      "score": 4,
+      "process": "Post updates in daily stand-ups. Notify the team about blockers or completed milestones promptly."
+    },
+    {
+      "code": "timeline",
+      "description": "Share and maintain accurate project timelines.",
+      "score": 3,
+      "process": "Create detailed timelines in project management tools. Update timelines after changes and confirm them with the team."
+    },
+    {
+      "code": "reports",
+      "description": "Document and share technical progress and performance metrics.",
+      "score": 5,
+      "process": "Prepare concise reports highlighting completed work, challenges, and next steps. Share with stakeholders at regular intervals."
+    },
+    {
+      "code": "easy",
+      "description": "Simplify technical decisions to enable faster approvals and collaboration.",
+      "score": 8,
+      "process": "Break down technical challenges into smaller, understandable tasks. Provide clear trade-offs and recommended solutions."
+    },
+    {
+      "code": "emails",
+      "description": "Write clear, actionable emails for technical discussions.",
+      "score": 5,
+      "process": "Use precise subject lines. Include necessary context and code snippets. Specify next steps and deadlines for clarity."
+    },
+    {
+      "code": "clarify",
+      "description": "Ensure alignment on project scope and deliverables.",
+      "score": 5,
+      "process": "Ask questions to clarify expectations, document agreements, and confirm scope with stakeholders."
+    },
+    {
+      "code": "goals",
+      "description": "Define clear, short-term objectives for yourself and your team.",
+      "score": 8,
+      "process": "Write one-month or three-month goals with specific metrics, such as \"Reduce server response time by 10%\"."
+    },
+    {
+      "code": "presentations",
+      "description": "Deliver concise and compelling technical presentations.",
+      "score": 10,
+      "process": "Practice presenting solutions and outcomes weekly. Ensure presentations include action steps and clear \"so what\" outcomes."
+    },
+    {
+      "code": "achievements",
+      "description": "Maintain a record of your accomplishments for reviews and promotions.",
+      "score": 4,
+      "process": "Create a folder to save all compliments, outcomes, and metrics from projects."
+    }
+  ]
+  
