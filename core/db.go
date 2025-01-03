@@ -2,6 +2,9 @@ package core
 
 import (
 	"database/sql"
+	"encoding/json"
+	"fmt"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -66,11 +69,29 @@ func InitializeTables(db *sql.DB) {
 		);
 	`
 
-	scoreTable := `
-		CREATE TABLE IF NOT EXISTS scores (
+	logsTable := `
+		CREATE TABLE IF NOT EXISTS logs (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			principle TEXT NOT NULL,
-			score INTEGER NOT NULL
+			action_code TEXT NOT NULL,
+			score INTEGER NOT NULL,
+			timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+		);
+	`
+
+	actionTable := `
+		CREATE TABLE IF NOT EXISTS actions (
+			code TEXT PRIMARY KEY,
+			description TEXT NOT NULL,
+			score INTEGER NOT NULL,
+			process TEXT NOT NULL
+		);
+	`
+
+	totalsTable := `
+		CREATE TABLE IF NOT EXISTS totals (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			name TEXT NOT NULL,
+			total INTEGER NOT NULL
 		);
 	`
 
@@ -89,11 +110,56 @@ func InitializeTables(db *sql.DB) {
 		log.Fatalf("Failed to create steps table: %v", err)
 	}
 
-	_, err = db.Exec(scoreTable)
+	_, err = db.Exec(logsTable)
 	if err != nil {
 		log.Fatalf("Failed to create score table: %v", err)
 	}
+
+	_, err = db.Exec(totalsTable)
+	if err != nil {
+		log.Fatalf("Failed to create totals table: %v", err)
+	}
+
+	_, err = db.Exec(actionTable)
+	if err != nil {
+		log.Fatalf("Failed to create actions table: %v", err)
+	}
+
+	// seed
+	seedDatabase(db)
+	
 }
+
+func seedDatabase(db *sql.DB) error {
+	file, err := os.Open("./core/actions.json")
+	if err != nil {
+		return fmt.Errorf("failed to open file: %v", err)
+	}
+	defer file.Close()
+
+	byteValue, err := io.ReadAll(file)
+	if err != nil {
+		return fmt.Errorf("failed to read JSON file: %v", err)
+	}
+
+	// Parse the JSON data
+	var actions []Action
+	if err := json.Unmarshal(byteValue, &actions); err != nil {
+		return fmt.Errorf("failed to unmarshal JSON data: %v", err)
+	}
+
+	// Insert data into the database
+	for _, action := range actions {
+		query := `INSERT INTO actions (code, description, score, process) VALUES (?, ?, ?, ?)`
+		_, err := db.Exec(query, action.Code, action.Description, action.Score, action.Process)
+		if err != nil {
+			return fmt.Errorf("failed to insert action into database: %v", err)
+		}
+	}
+
+	return nil
+}
+
 
 func FindOrCreateProject(db *sql.DB, name string) int {
 	var id int
