@@ -1,4 +1,4 @@
-package core
+package db
 
 import (
 	"database/sql"
@@ -13,7 +13,7 @@ import (
 const appDataFolder = ".kerr"
 const dbFileName = "kerr.db"
 
-func OpenDatabase(dbPath string) *sql.DB {
+func openDatabase(dbPath string) *sql.DB {
 	db, err := sql.Open("sqlite3", dbPath)
 	if err != nil {
 		log.Fatalf("Failed to open database: %v", err)
@@ -21,7 +21,7 @@ func OpenDatabase(dbPath string) *sql.DB {
 	return db
 }
 
-func EnsureDatabase() string {
+func ensureDatabase() string {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		log.Fatalf("Failed to get home directory: %v", err)
@@ -44,7 +44,7 @@ func EnsureDatabase() string {
 	return dbPath
 }
 
-func InitializeTables(db *sql.DB) {
+func initializeTables(db *sql.DB) {
 	projectTable := `
 		CREATE TABLE IF NOT EXISTS projects (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -124,10 +124,6 @@ func InitializeTables(db *sql.DB) {
 	if err != nil {
 		log.Fatalf("Failed to create actions table: %v", err)
 	}
-
-	// seed
-	seedDatabase(db)
-	
 }
 
 func seedDatabase(db *sql.DB) error {
@@ -143,7 +139,12 @@ func seedDatabase(db *sql.DB) error {
 	}
 
 	// Parse the JSON data
-	var actions []Action
+	var actions []struct {
+		Code        string `json:"code"`
+		Description string `json:"description"`
+		Score       int    `json:"score"`
+		Process     string `json:"process"`
+	}
 	if err := json.Unmarshal(byteValue, &actions); err != nil {
 		return fmt.Errorf("failed to unmarshal JSON data: %v", err)
 	}
@@ -160,24 +161,16 @@ func seedDatabase(db *sql.DB) error {
 	return nil
 }
 
+var instance *sql.DB
 
-func FindOrCreateProject(db *sql.DB, name string) int {
-	var id int
-	err := db.QueryRow("SELECT id FROM projects WHERE name = ?", name).Scan(&id)
-	if err == nil {
-		return id
-	}
+func init() {
+	dbPath := ensureDatabase()
+	instance = openDatabase(dbPath)
+	initializeTables(instance)
+	seedDatabase(instance)
+}
 
-	result, err := db.Exec("INSERT INTO projects (name) VALUES (?)", name)
-	if err != nil {
-		log.Fatalf("Failed to insert project: %v", err)
-	}
-
-	lastInsertId, err := result.LastInsertId()
-	if err != nil {
-		log.Fatalf("Failed to get last insert ID: %v", err)
-	}
-	id = int(lastInsertId)
-
-	return int(id)
+func GetDB() *sql.DB {
+	fmt.Println("Database initialized")
+	return instance
 }

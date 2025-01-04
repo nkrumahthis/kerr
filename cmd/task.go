@@ -11,6 +11,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"nkrumahsarpong.com/kerr/core"
+	"nkrumahsarpong.com/kerr/db"
 )
 
 type task struct {
@@ -23,8 +24,7 @@ var taskCmd = &cobra.Command{
 	Use:   "task",
 	Short: "Manage tasks within the current project",
 	Run: func(cmd *cobra.Command, args []string) {
-		dbPath := core.EnsureDatabase()
-		db := core.OpenDatabase(dbPath)
+		db := db.GetDB()
 		defer db.Close()
 
 		if len(args) == 0 {

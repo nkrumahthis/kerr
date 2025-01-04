@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"strings"
+
+	"nkrumahsarpong.com/kerr/db"
 )
 
 type Action struct {
@@ -14,16 +16,22 @@ type Action struct {
 }
 
 func LogAchievements(codes []string, isSuccess bool) {
-	db := OpenDatabase(EnsureDatabase())
-	defer db.Close()
+	db := db.GetDB()
+
+	tx, err := db.Begin()
+	if err != nil {
+		log.Fatalf("Failed to begin transaction: %v", err)
+	}
 
 	query := "SELECT code, score FROM actions WHERE code IN (" + strings.Repeat("?,", len(codes)-1) + "?)"
-	stmt, err := db.Prepare(query)
+	stmt, err := tx.Prepare(query)
 	if err != nil {
+		tx.Rollback()
 		log.Fatalf("Failed to prepare query: %v", err)
 	}
 	rows, err := stmt.Query(toInterfaceSlice(codes)...)
 	if err != nil {
+		tx.Rollback()
 		log.Fatalf("Failed to query actions: %v", err)
 	}
 	defer rows.Close()
@@ -33,8 +41,11 @@ func LogAchievements(codes []string, isSuccess bool) {
 		var code string
 		var score int
 		if err := rows.Scan(&code, &score); err != nil {
+			tx.Rollback()
 			log.Fatalf("Failed to scan row: %v", err)
 		}
+
+		fmt.Println(code, score)
 
 		// Adjust score based on success or failure
 		adjustedScore := score
@@ -44,7 +55,7 @@ func LogAchievements(codes []string, isSuccess bool) {
 
 		// log the action
 		logQuery := "INSERT INTO logs (action_code, score) VALUES (?, ?)"
-		if _, err := db.Exec(logQuery, code, adjustedScore); err != nil {
+		if _, err := tx.Exec(logQuery, code, adjustedScore); err != nil {
 			log.Printf("Failed to log action %s: %v", code, err)
 			continue
 		}
@@ -58,15 +69,20 @@ func LogAchievements(codes []string, isSuccess bool) {
 
 	// Update the total score
 	updateTotal := "UPDATE totals SET total = total + ? WHERE name = 'xp'"
-	if _, err := db.Exec(updateTotal, totalScore); err != nil {
+	if _, err := tx.Exec(updateTotal, totalScore); err != nil {
+		tx.Rollback()
 		log.Fatalf("Failed to update total score: %v", err)
 	}
+
+	if err := tx.Commit(); err != nil {
+		log.Fatalf("Failed to commit transaction: %v", err)
+	}
+
 	fmt.Printf("Total XP: %d\n", totalScore)
 }
 
-func ListActions() {
-	db := OpenDatabase(EnsureDatabase())
-	defer db.Close()
+func GetActions() []Action {
+	db := db.GetDB()
 
 	rows, err := db.Query("SELECT code, description, score FROM actions")
 	if err != nil {
@@ -82,6 +98,12 @@ func ListActions() {
 		}
 		actions = append(actions, a)
 	}
+
+	return actions
+}
+
+func ListActions() {
+	actions := GetActions()
 
 	if len(actions) == 0 {
 		fmt.Println("No actions found")

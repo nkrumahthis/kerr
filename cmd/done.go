@@ -9,18 +9,11 @@ import (
 )
 
 var doneCmd = &cobra.Command{
-	Use: "done",
-	Short: "Successfully did something",
+	Use: "done [action codes]",
+	Short: "Log completed actions and update XP score.",
+	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		dbPath := core.EnsureDatabase()
-		db := core.OpenDatabase(dbPath)
-		defer db.Close()
-
-		if len(args) == 0 {
-			listDone()
-		} else {
-			handleDone(db, args[0])
-		}
+		core.LogAchievements(args, true)
 	},
 }
 
